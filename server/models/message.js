@@ -12,7 +12,6 @@ const message = new Schema(
                 date:  String
             }
     }
-
 );
 
 module.exports = ItemMessaeg = mongoose.model('ItemMessaeg', message);

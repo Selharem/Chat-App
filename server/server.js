@@ -24,9 +24,6 @@ mongoose
     .then(() => console.log("mongoDB Connected ..."))
     .catch(err => console.log(err));
 
-// insert messages into database 
-
-
 
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 

@@ -6,8 +6,8 @@ const addUser = ({ id, Name, Room }) => {
 
     const existingUser = users.find((user) => user.Room === Room && user.Name === Name);
 
-    if (!Name || !Room) return { error: 'Username and room are required.' };
-    if (existingUser) return { error: 'Username is taken.' };
+   /* if (!Name || !Room) return { error: 'Username and room are required.' };
+    if (existingUser) return { error: 'Username is taken.' };*/
 
     const user = { id, Name, Room };
 

@@ -3,14 +3,11 @@ const router = express.Router();
 const Item = require('./models/Item');
 const ItemMessage = require('./models/message');
 
-/*router.get("/", (req, res) => {
-    res.send({ response: "Server is up and running." }).status(200);
-});*/
 
 
-//Get
-router.get('/friends', (req, res) => {
-    Item.find({name:"Hasnaa"})
+//Get Freinds 
+router.get('/friends/:id', (req, res) => {
+    Item.find({name:req.params.id})
         .then(items => res.json(items))
 
 
@@ -24,7 +21,7 @@ router.get('/messages/:id', (req, res) => {
 
 });
 
-//insert sender messages into database
+//insert  messages into database
 router.post('/insert/messages/sender', (req, res) => {
     ItemMessage.collection.insert({
         Room: req.body.Room,
@@ -44,29 +41,7 @@ router.post('/insert/messages/sender', (req, res) => {
 
 });
 
-  
-
-//insert receiver messages into database
-router.post('/insert/messages/receiver', (req, res) => {
-    ItemMessage.collection.insert({
-        you: 
-
-            {
-                name: req.body.user,
-                message1: req.body.message1
-            }
-
-
-        
-    })
-        .then(itemmessages => res.json(itemmessages))
-
-
-});
-
-
-
-// Post
+//Insert friends into db
 router.post('/post', (req, res) => {
     const newItem = new Item({
         name: req.body.name,
@@ -93,36 +68,25 @@ router.post('/post', (req, res) => {
 
 });
 
-//Post message 
-router.post('/post/message', (req, res) => {
-    const newItem = new ItemMessage({
+/*
+router.patch('/insert/messages/sender/:id', async (req, res) => {
+	try {
+		const post = await ItemMessage.findOne({ _id: req.params.id })
 
-        sender: [
+		if (req.body.title) {
+			post.title = req.body.title
+		}
 
-            {
-                name:req.body.sender[0].name,
-                text:req.body.sender[0].text
-            }
+		if (req.body.content) {
+			post.content = req.body.content
+		}
 
-
-        ],
-        receiver: [
-            {
-                name: req.body.receiver[0].name,
-                text: req.body.receiver[0].text,
-            }
-
-        ]
-
-    });
-
-    newItem.save()
-        .then(item => res.json(item))
-
-});
-
-
-
-
+		await post.save()
+		res.send(post)
+	} catch {
+		res.status(404)
+		res.send({ error: "Post doesn't exist!" })
+	}
+})*/
 
 module.exports = router;

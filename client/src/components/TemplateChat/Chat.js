@@ -20,40 +20,38 @@ function Chat({ location }) {
 	const [messagesDB, setMessagesDB] = useState([]);
 	const [friends, setFriends] = useState([]);
 	const [postId, setPostId] = useState(null);
-	const [writer, setWriter] = useState(null);
 	const [firstClick, setFirstClick] = useState(true);
 	const [displayAside, setDisplayAside] = useState({display:'block'});
 	const [displayMain, setDisplayMain] = useState({ display: 'none' });
-	const test = "2";
+	const time = new Date();
+	const formattedTime = time.toLocaleString("en-US", { hour: "numeric", minute: "numeric" });
+	
 
 	useEffect(() => {
-		//Connenct to the server
-		socket = io(ENDPOINT);
+		
 			//Fetch Friends
-			fetch('http://localhost:5000/friends')
+			fetch(`http://localhost:5000/friends/${nom}`)
 				.then(res => res.json())
 				.then(friend => setFriends(friend[0].Friends , console.log(`Friends feched ...`, JSON.stringify(friend[0].Friends ))));
-	
-	
-		
-		//put received message to db
-		//console.log(`hahowa l message ${messagesDB[[0]]['me'].message1}`);
+		//console.log(` l message ${messagesDB[[0]]['me'].message1}`);
 			
-	}, [ENDPOINT]);
+	}, []);
 
 
-	//Send name and rooom to the servers
+	//Send name and rooom to the server
 	//get name of the user how will send the message
 	const data = queryString.parse(window.location.search);
 	const nom = data.name;
-	const myValue = "ROOM2";
 
 
 
-	
-	const click = (event) => {
-		console.log(`hahiya la liste ${JSON.stringify(friends[0].namef)}`);
-		console.log(`let's say this${event.currentTarget.dataset.id}`);
+
+	const clickFreind = (event) => {
+		
+		//Connenct to the server
+		socket = io(ENDPOINT);
+		console.log(` list freinds ${JSON.stringify(friends[0].namef)}`);
+		console.log(`room ${event.currentTarget.dataset.id}`);
 		
 	
 		setDisplayAside({
@@ -66,8 +64,9 @@ function Chat({ location }) {
 
 		setFirstClick(false);
 
-		
-		// Get the room == The personwho will recive the message
+		setMessages([]);
+    
+		// Get the room == The person who will receive the message
 		const { Name, Room } = { Name: nom, Room: event.currentTarget.dataset.id }
 		setName(nom);
 		setRoom(event.currentTarget.dataset.id);
@@ -85,24 +84,26 @@ function Chat({ location }) {
 		fetch(`http://localhost:5000/messages/${event.currentTarget.dataset.id}`)
 			.then(res => res.json())
 			.then(message => setMessagesDB(message));
+
+
 		//Get messages reel time
 		socket.on('message', message => {
 			setMessages(messages => [...messages, message]);
 			console.log(message)
 			
 		});
+	
 		
 	}
 
-	
 	//Sending messages
 	const sendMessage = (event) => {
 		event.preventDefault();
-		//Scket
+		//Socket
 		if (message) {
 			socket.emit('sendMessage', message, () => setMessage(''));
 
-			//Database
+			//send msg to the Database
 			const requestOptions = {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -113,26 +114,14 @@ function Chat({ location }) {
 					"date": formattedTime
 				})
 			};
-			fetch('http://localhost:5000/insert/messages/sender', requestOptions)
+			fetch(`http://localhost:5000/insert/messages/sender`, requestOptions)
 				.then(response => response.json())
 				.then(data => setPostId(data.id));
 		}
 		
-
-		console.log(`Hahiyya ohhhhh  ${room}`);
-		
-		
-		
-
-		
 	}
 
-
-	const time = new Date();
-	const formattedTime = time.toLocaleString("en-US", { hour: "numeric", minute: "numeric" });
-	
 	return (
-		
 		<div id="container">
 			<div className="container2">
 				<aside >
@@ -144,20 +133,18 @@ function Chat({ location }) {
 							<li
 							key={i}
 								data-id={friend.room}
-								onClick={click}
+								onClick={clickFreind}
 							>
 							<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/chat_avatar_01.jpg" alt=""></img>
 							<div>
 									<h2 id="test" >{friend.namef}</h2>
-								
 								<h3>
 									<span className="status orange"></span>
-						offline
-									</h3>
+									offline
+								</h3>
 							</div>
 							</li>
 						)}
-						
 					</ul>
 				</aside>
 				<main style={displayMain}>
@@ -169,7 +156,6 @@ function Chat({ location }) {
 						</div>
 						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_star.png" alt=""></img>
 					</header>
-
 					{firstClick ?
 						(
 						<ul id="chat">
@@ -179,6 +165,7 @@ function Chat({ location }) {
 								<div className="entete">
 									<span className="status green"></span>
 									<h2 >{message['me'].name}</h2>
+									<br/>
 									<h3>10:12AM, Today</h3>
 								</div>
 								<div className="triangle"></div>
@@ -189,7 +176,6 @@ function Chat({ location }) {
 						)
 						:
 						(
-							
 							<ul id="chat">
 								{messagesDB.map((message, i) =>
 									<li key={i}
@@ -197,19 +183,20 @@ function Chat({ location }) {
 										<div className="entete">
 											<span className="status green"></span>
 											<h2>{message['me'].name}</h2>
+											<br/>
 											<h3>{message['me'].date}</h3>
 										</div>
 										<div className="triangle"></div>
 										<div className="message">{ReactEmoji.emojify(message['me'].message1)}</div>
 									</li>
 								)}
-
 								{messages.map((message, i) =>
 									<li key={i}
 										className={message.user === nom ? 'you' : 'me'}>
 										<div className="entete">
 											<span className="status green"></span>
 											<h2>{message.user}</h2>
+											<br/>
 											<h3>{formattedTime}</h3>
 										</div>
 										<div className="triangle"></div>
@@ -217,12 +204,7 @@ function Chat({ location }) {
 									</li>
 								)}
 							</ul>
-
-							
 						)}
-					
-
-					
 					<footer>
 						<textarea placeholder="Type your message..."
 							type="text"
@@ -232,7 +214,7 @@ function Chat({ location }) {
 						</textarea>
 						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_picture.png" alt=""></img>
 						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_file.png" alt=""></img>
-						<Link  data-id={myValue} onClick={click}>SEND</Link>
+						<Link   onClick={sendMessage}>SEND</Link>
 					</footer>
 				</main>
 

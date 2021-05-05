@@ -9,8 +9,6 @@ import SignIn from '../Join/Join';
 function App() {
     return (
         <Router >
-
-   
             <Switch>
                 <Route exact path="/" component={SignIn} />
                 <Route exact path="/chat" component={Chat} />
@@ -18,15 +16,7 @@ function App() {
                 {/*<Route path="/forgetpassword" component={ForgetPassword} />*/}
                 <Route  />
             </Switch>
-
-
-
-
-
-
-
         </Router>
-
     );
 }
 
