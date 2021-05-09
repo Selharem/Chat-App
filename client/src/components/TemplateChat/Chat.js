@@ -3,6 +3,9 @@ import queryString from 'query-string';
 import io from "socket.io-client";
 import ReactEmoji from 'react-emoji';
 import { Link } from 'react-router-dom';
+import FormData from 'form-data';
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
 import './Chat.css';
 
 
@@ -17,15 +20,21 @@ function Chat({ location }) {
 	const [room, setRoom] = useState('');
 	const [message, setMessage] = useState('');
 	const [messages, setMessages] = useState([]);
+	const [files, setFiles] = useState([]);
 	const [messagesDB, setMessagesDB] = useState([]);
 	const [friends, setFriends] = useState([]);
 	const [postId, setPostId] = useState(null);
 	const [firstClick, setFirstClick] = useState(true);
 	const [displayAside, setDisplayAside] = useState({display:'block'});
 	const [displayMain, setDisplayMain] = useState({ display: 'none' });
+	const [selectedFile,setSelectedFile]=useState(null);
+	const [open, setOpen] = useState(false);
+	const [showFile, setShowFile]=useState(false);
+	const [file,setFile]=useState('');
 	const time = new Date();
 	const formattedTime = time.toLocaleString("en-US", { hour: "numeric", minute: "numeric" });
-	
+	const [test,setTest]	=useState('');
+	const [decodeBase64,setDecodeBase64]=useState(null);
 
 	useEffect(() => {
 		
@@ -92,6 +101,13 @@ function Chat({ location }) {
 			console.log(message)
 			
 		});
+
+		socket.on('base64 file', file => {
+			setFiles(files => [...files, file]);
+			console.log(file)
+		});
+		
+		
 	
 		
 	}
@@ -119,7 +135,78 @@ function Chat({ location }) {
 				.then(data => setPostId(data.id));
 		}
 		
+		/// File 
+		
 	}
+
+///////////////Testing//////////////
+const onFileChange=e=>{
+	setSelectedFile(e.target.files[0]);
+	setOpen(true) ;
+	
+	var data = e.target.files[0];
+
+	
+}
+
+
+
+
+//const formData = new FormData(); 
+  const confirm=()=>{
+	setOpen(false);
+	setShowFile(true);
+	
+		/*formData.append(
+		"myFile", 
+		selectedFile ); 
+		console.log(`uploading files ${formData}`);*/
+
+		//Socket.io
+		readThenSendFile(selectedFile);     
+		
+		
+
+  }
+
+  
+
+  function readThenSendFile(data){
+
+    var reader = new FileReader();
+    reader.onload = function(evt){
+       var msg ={};
+        msg.username = nom;
+        msg.file =evt.target.result;
+        msg.fileName = data.name;
+		socket.emit('base64 file', msg, () => setFile(''));
+		
+    };
+    reader.readAsText(data)
+	
+}
+
+
+//// Decode base64
+ /*const decodeFileBase64 =(base64String)=>{
+
+	return decodeURIComponent(
+		atob(base64String)
+		.split("")
+		.map(function(c){
+			return "%" +(c.charCodeAt(0).toString(16).slice(-2));
+		})
+		.join("")
+
+	);
+ }*/
+ 
+
+  const cancel=()=>{
+	setOpen(false);
+  }
+
+	
 
 	return (
 		<div id="container">
@@ -170,6 +257,7 @@ function Chat({ location }) {
 								</div>
 								<div className="triangle"></div>
 								<div className="message">{ReactEmoji.emojify(message['me'].message1)}</div>
+
 							</li>
 						)}
 					</ul>
@@ -201,10 +289,41 @@ function Chat({ location }) {
 										</div>
 										<div className="triangle"></div>
 										<div className="message">{ReactEmoji.emojify(message.text)}</div>
+										
 									</li>
 								)}
+							
+									{files.map((file,i)=>
+										<li key={i}
+										className= {file.username === nom ? 'you' : 'me'}>
+										<div className="entete">
+											<span className="status green"></span>
+											<h2>{file.username}</h2>
+											<br/>
+											<h3>{formattedTime}</h3>
+										</div>
+										<div className="triangle"></div>
+										<div className="message">{file.file}</div>
+										
+									</li>)}
 							</ul>
 						)}
+
+                   {selectedFile ? 
+				   			(
+							<Popup style={{width:10}} open={open} modal position="right center">
+							<div>
+							<h2>Are you sure about sending this file </h2> 
+							<p>File Name: {selectedFile.name}</p> 
+							<button onClick={confirm}>Confirm</button>
+							<button onClick={cancel}>Cancel</button>
+							</div>
+							</Popup>
+							)
+							:
+							(
+								<></>
+							)}
 					<footer>
 						<textarea placeholder="Type your message..."
 							type="text"
@@ -212,9 +331,18 @@ function Chat({ location }) {
 							onChange={(event) => setMessage(event.target.value)}
 							onKeyPress={event => event.key === 'Enter' ? sendMessage(event) : null}>
 						</textarea>
+						<label>
 						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_picture.png" alt=""></img>
-						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_file.png" alt=""></img>
+						<input type="file"  accept=".png,.jpeg,.jpg" onChange={onFileChange} style={{display:"none"}} /> 
+						</label>
+						<label>
+						<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_file.png" alt="" ></img>
+						<input type="file" 	value={file} onChange={onFileChange} style={{display:"none"}} /> 
+						</label>
 						<Link   onClick={sendMessage}>SEND</Link>
+						
+							
+													
 					</footer>
 				</main>
 

@@ -60,6 +60,21 @@ io.on('connect', (socket) => {
         callback();
     });
 
+    socket.on('base64 file', function (msg) {
+        console.log('received base64 file from' + msg.username);
+        socket.username = msg.username;
+        // socket.broadcast.emit('base64 image', //exclude sender
+        io.sockets.emit('base64 file',  //include sender
+    
+            {
+              username: socket.username,
+              file: msg.file,
+              fileName: msg.fileName
+            }
+    
+        );
+    });
+
     socket.on('disconnect', () => {
         const user = removeUser(socket.id);
 
