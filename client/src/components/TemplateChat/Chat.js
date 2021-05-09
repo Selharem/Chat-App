@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import FormData from 'form-data';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
+import Axios from 'axios';
 import './Chat.css';
 
 
@@ -107,7 +108,15 @@ function Chat({ location }) {
 			console.log(file)
 		});
 		
-		
+		socket.on('image', image => {
+			// create image with
+			const img = new Image();
+			// change image type to whatever you use, or detect it in the backend 
+			// and send it if you support multiple extensions
+			img.src = `data:image/jpg;base64,${image}`; 
+			setFiles(files => [...files, img.src ]);
+			// Insert it into the DOM
+		});
 	
 		
 	}
@@ -141,12 +150,18 @@ function Chat({ location }) {
 
 ///////////////Testing//////////////
 const onFileChange=e=>{
-	setSelectedFile(e.target.files[0]);
+	
 	setOpen(true) ;
 	
 	var data = e.target.files[0];
 
-	
+	const reader = new FileReader();
+	reader.onload = function() {
+	  const base64 = reader.result.replace(/.*base64,/, '');
+	  socket.emit('image', base64);
+	};
+	reader.readAsDataURL(data);
+
 }
 
 
@@ -163,7 +178,7 @@ const onFileChange=e=>{
 		console.log(`uploading files ${formData}`);*/
 
 		//Socket.io
-		readThenSendFile(selectedFile);     
+	//	readThenSendFile(selectedFile);     
 		
 		
 
@@ -182,7 +197,7 @@ const onFileChange=e=>{
 		socket.emit('base64 file', msg, () => setFile(''));
 		
     };
-    reader.readAsText(data)
+    reader.readAsDataURL(data)
 	
 }
 
@@ -303,7 +318,7 @@ const onFileChange=e=>{
 											<h3>{formattedTime}</h3>
 										</div>
 										<div className="triangle"></div>
-										<div className="message">{file.file}</div>
+										<div className="message"><img src={file}></img></div>
 										
 									</li>)}
 							</ul>

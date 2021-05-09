@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyPaser = require('body-parser');
 const app = express();
+const fs = require('fs');
 app.use(bodyPaser.json());
 
 //enable cors
@@ -74,7 +75,16 @@ io.on('connect', (socket) => {
     
         );
     });
+    //////////////////////////////////////////////////
+    socket.on('image', async image => {
+        const buffer = Buffer.from(image, 'base64');
+        await fs.writeFile('uploads/file.txt', buffer,function (err) {
+            if (err) return console.log(err);}); // fs.promises
+        socket.emit('image', buffer.toString('base64')); // image should be a buffer
+    });
+   
 
+    /////////////////////////////////////////////////
     socket.on('disconnect', () => {
         const user = removeUser(socket.id);
 
